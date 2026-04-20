@@ -27,12 +27,12 @@ class TestGraphClient:
             mock_client = MagicMock()
             mock_client_class.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_class.return_value.__exit__ = MagicMock(return_value=False)
-            mock_client.get.return_value = mock_response
+            mock_client.request.return_value = mock_response
             
             result = client.get("/me/calendarView", params={"$top": 10})
             
             assert result == {"value": [{"id": "test"}]}
-            mock_client.get.assert_called_once()
+            mock_client.request.assert_called_once()
 
     def test_retry_on_throttling(self, mock_config, mock_auth_session) -> None:
         """Test retry logic on 429 throttling."""
@@ -47,11 +47,18 @@ class TestGraphClient:
         success_response.status_code = 200
         success_response.json.return_value = {"value": []}
         
+        call_count = [0]
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return throttle_response
+            return success_response
+        
         with patch("httpx.Client") as mock_client_class:
             mock_client = MagicMock()
             mock_client_class.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_class.return_value.__exit__ = MagicMock(return_value=False)
-            mock_client.get.side_effect = [throttle_response, success_response]
+            mock_client.request.side_effect = side_effect
             
             with patch("time.sleep") as mock_sleep:
                 result = client.get("/me/calendarView")
@@ -59,7 +66,7 @@ class TestGraphClient:
                 # Should sleep for 1 second (Retry-After header)
                 mock_sleep.assert_called_once_with(1)
                 assert result == {"value": []}
-                assert mock_client.get.call_count == 2
+                assert mock_client.request.call_count == 2
 
     def test_exponential_backoff(self, mock_config, mock_auth_session) -> None:
         """Test exponential backoff without Retry-After header."""
@@ -77,15 +84,18 @@ class TestGraphClient:
         success_response.status_code = 200
         success_response.json.return_value = {"value": []}
         
+        call_count = [0]
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] <= 2:
+                return throttle_response
+            return success_response
+        
         with patch("httpx.Client") as mock_client_class:
             mock_client = MagicMock()
             mock_client_class.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_class.return_value.__exit__ = MagicMock(return_value=False)
-            mock_client.get.side_effect = [
-                throttle_response,  # First attempt
-                throttle_response,  # Second attempt (retry 1)
-                success_response,   # Third attempt (retry 2)
-            ]
+            mock_client.request.side_effect = side_effect
             
             with patch("time.sleep") as mock_sleep:
                 result = client.get("/me/calendarView")
@@ -113,16 +123,23 @@ class TestGraphClient:
             "value": [{"id": "item-2"}],
         }
         
+        call_count = [0]
+        def side_effect(*args, **kwargs):
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return page1_response
+            return page2_response
+        
         with patch("httpx.Client") as mock_client_class:
             mock_client = MagicMock()
             mock_client_class.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_class.return_value.__exit__ = MagicMock(return_value=False)
-            mock_client.get.side_effect = [page1_response, page2_response]
+            mock_client.request.side_effect = side_effect
             
             result = client.get_all("/me/calendarView", params={"$top": 1})
             
             assert result == {"value": [{"id": "item-1"}, {"id": "item-2"}]}
-            assert mock_client.get.call_count == 2
+            assert mock_client.request.call_count == 2
 
     def test_max_retries_exceeded(self, mock_config, mock_auth_session) -> None:
         """Test that max retries exceeded raises error."""
@@ -130,20 +147,24 @@ class TestGraphClient:
         
         client = GraphClient(mock_config, mock_auth_session)
         
-        throttle_response = MagicMock()
-        throttle_response.status_code = 429
-        throttle_response.headers = {"Retry-After": "1"}
-        throttle_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-            "Too Many Requests",
-            request=MagicMock(),
-            response=throttle_response,
-        )
+        call_count = [0]
+        def always_throttle(*args, **kwargs):
+            call_count[0] += 1
+            throttle_response = MagicMock()
+            throttle_response.status_code = 429
+            throttle_response.headers = {"Retry-After": "1"}
+            throttle_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+                "Too Many Requests",
+                request=MagicMock(),
+                response=throttle_response,
+            )
+            return throttle_response
         
         with patch("httpx.Client") as mock_client_class:
             mock_client = MagicMock()
             mock_client_class.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_class.return_value.__exit__ = MagicMock(return_value=False)
-            mock_client.get.return_value = throttle_response
+            mock_client.request.side_effect = always_throttle
             
             with patch("time.sleep"):
                 with pytest.raises(httpx.HTTPStatusError):
@@ -153,22 +174,24 @@ class TestGraphClient:
         """Test that non-429 errors are not retried."""
         client = GraphClient(mock_config, mock_auth_session)
         
-        error_response = MagicMock()
-        error_response.status_code = 500
-        error_response.raise_for_status.side_effect = httpx.HTTPStatusError(
-            "Server Error",
-            request=MagicMock(),
-            response=error_response,
-        )
+        def make_error_response(*args, **kwargs):
+            error_response = MagicMock()
+            error_response.status_code = 500
+            error_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+                "Server Error",
+                request=MagicMock(),
+                response=error_response,
+            )
+            return error_response
         
         with patch("httpx.Client") as mock_client_class:
             mock_client = MagicMock()
             mock_client_class.return_value.__enter__ = MagicMock(return_value=mock_client)
             mock_client_class.return_value.__exit__ = MagicMock(return_value=False)
-            mock_client.get.return_value = error_response
+            mock_client.request.side_effect = make_error_response
             
             with pytest.raises(httpx.HTTPStatusError):
                 client.get("/me/calendarView")
             
             # Should only make one request, no retries
-            assert mock_client.get.call_count == 1
+            assert mock_client.request.call_count == 1

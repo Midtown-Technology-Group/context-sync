@@ -1,12 +1,20 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import logging
 from datetime import date, datetime, timedelta
 
 from .config import load_config
 from .pipeline import run_sync
 from .utils.logging_config import setup_logging
+
+# Async support is available but optional
+try:
+    from .async_pipeline import run_async_sync
+    ASYNC_AVAILABLE = True
+except ImportError:
+    ASYNC_AVAILABLE = False
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -21,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     sync_parser.add_argument("target_date", nargs="?", default="today", help="Date in YYYY-MM-DD format or 'today'")
     sync_parser.add_argument("--config", default="config.json", help="Path to config file")
     sync_parser.add_argument("--sources", nargs="*", choices=["calendar", "mail", "todo", "teams_meetings", "teams_chats"], help="Optional subset of sources")
+    sync_parser.add_argument("--async", dest="use_async", action="store_true", help="Use async mode for concurrent fetching (faster)")
 
     range_parser = subparsers.add_parser("sync-range", help="Sync a date range of work context")
     range_parser.add_argument("start_date", help="Start date in YYYY-MM-DD format")
@@ -67,7 +76,13 @@ def main() -> None:
 
     if args.command == "sync":
         target = parse_target_date(args.target_date)
-        run_sync(config=config, target_date=target, selected_sources=args.sources)
+        
+        # Use async mode if requested and available
+        if getattr(args, 'use_async', False) and ASYNC_AVAILABLE:
+            logging.getLogger("work_context_sync").info("Using async mode for concurrent fetching")
+            asyncio.run(run_async_sync(config=config, target_date=target, selected_sources=args.sources))
+        else:
+            run_sync(config=config, target_date=target, selected_sources=args.sources)
         return
 
     if args.command == "sync-range":
