@@ -1,6 +1,7 @@
 from .base import BaseSourceModel, BaseSourceResult, TypedSourceResult
 from .calendar import CalendarEvent, CalendarResult, DateTimeTimeZone
 from .config import AppConfig
+from .enums import AuthMode, SourceType
 from .exceptions import (
     AuthError,
     ConfigurationError,
@@ -19,6 +20,8 @@ __all__ = [
     "TypedSourceResult",
     # Config
     "AppConfig",
+    "AuthMode",
+    "SourceType",
     # Exceptions
     "AuthError",
     "ConfigurationError",

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 import time
 
 import httpx
+
+logger = logging.getLogger("work_context_sync.graph_client")
 
 
 class GraphClient:
@@ -34,7 +37,7 @@ class GraphClient:
 
             retry_after = response.headers.get("Retry-After")
             wait_seconds = int(retry_after) if retry_after and retry_after.isdigit() else base_wait * (attempt + 1)
-            print(f"Graph throttled on {url}; retrying in {wait_seconds}s")
+            logger.warning("Graph throttled on %s; retrying in %ss", url, wait_seconds)
             time.sleep(wait_seconds)
 
         raise RuntimeError("Unreachable retry loop in GraphClient")

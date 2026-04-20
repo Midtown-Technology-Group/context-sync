@@ -77,9 +77,13 @@ class GraphAuthSession:
         # Enable broker (WAM) for Windows SSO
         allow_broker = getattr(config.auth, "allow_broker", True)
         
+        # Get secret values from SecretStr
+        client_id = config.client_id.get_secret_value()
+        tenant_id = config.tenant_id.get_secret_value()
+        
         self.app = msal.PublicClientApplication(
-            client_id=config.client_id,
-            authority=f"https://login.microsoftonline.com/{config.tenant_id}",
+            client_id=client_id,
+            authority=f"https://login.microsoftonline.com/{tenant_id}",
             token_cache=self.cache,
             allow_broker=allow_broker,
         )
