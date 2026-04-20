@@ -5,6 +5,13 @@ from pathlib import Path
 import json
 
 
+def _json_serialize(obj: object) -> str:
+    """Custom JSON serializer that handles datetime objects."""
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    raise TypeError(f"Object of type {obj.__class__.__name__} is not JSON serializable")
+
+
 def write_raw_outputs(config, target_date: date, result: dict) -> None:
     if not config.output.write_raw_json:
         return
@@ -24,4 +31,7 @@ def write_raw_outputs(config, target_date: date, result: dict) -> None:
             "items": payload.get("value", payload),
         }
         path = base / f"{target_date.isoformat()}-{source_name}.json"
-        path.write_text(json.dumps(output, indent=2), encoding="utf-8")
+        path.write_text(
+            json.dumps(output, indent=2, default=_json_serialize),
+            encoding="utf-8"
+        )
