@@ -10,7 +10,7 @@ long_description = README.read_text(encoding="utf-8") if README.exists() else ""
 
 setup(
     name="mtg-work-context-sync",
-    version="1.0.0",
+    version="1.1.0",
     description="Sync Microsoft 365 work context to LogSeq knowledge graph",
     long_description=long_description,
     long_description_content_type="text/markdown",
