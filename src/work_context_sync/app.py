@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from datetime import date, datetime, timedelta
 
 from .config import load_config
 from .pipeline import run_sync
+from .utils.logging_config import setup_logging
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Sync work context into the vault")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable DEBUG logging")
+    parser.add_argument("--quiet", "-q", action="store_true", help="Enable WARNING-only logging")
+    parser.add_argument("--log-file", help="Write logs to file path")
+    
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     sync_parser = subparsers.add_parser("sync", help="Sync a single day of work context")
@@ -41,6 +47,22 @@ def iter_date_range(start: date, end: date):
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+    
+    # Determine log level from flags
+    log_level = logging.INFO
+    if args.verbose:
+        log_level = logging.DEBUG
+    elif args.quiet:
+        log_level = logging.WARNING
+    
+    # Setup logging
+    log_file = None
+    if args.log_file:
+        from pathlib import Path
+        log_file = Path(args.log_file)
+    
+    setup_logging(level=log_level, log_file=log_file)
+    
     config = load_config(args.config)
 
     if args.command == "sync":

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import logging
 import os
 import platform
 import subprocess
-import sys
 from pathlib import Path
 
 import msal
@@ -14,6 +14,8 @@ try:
     HAS_MSAL_EXTENSIONS = True
 except ImportError:
     HAS_MSAL_EXTENSIONS = False
+
+logger = logging.getLogger("work_context_sync.auth")
 
 
 def _get_console_window_handle() -> int | None:
@@ -99,23 +101,22 @@ class GraphAuthSession:
                 persistence = msal_extensions.FilePersistenceWithDataProtection(str(cache_path))
                 cache = msal_extensions.PersistedTokenCache(persistence)
                 
-                print(f"Using DPAPI-encrypted token cache: {cache_path}", file=sys.stderr)
+                logger.info("Using DPAPI-encrypted token cache: %s", cache_path)
                 return cache, persistence
             except Exception as e:
-                print(f"Warning: Could not create secure cache ({e}), using in-memory only", file=sys.stderr)
+                logger.warning("Could not create secure cache (%s), using in-memory only", e)
         else:
             if platform.system() == "Windows" and not HAS_MSAL_EXTENSIONS:
-                print(
-                    "Warning: msal_extensions not installed. "
-                    "Install with: pip install msal[broker]\n"
-                    "Falling back to in-memory cache (no persistence).",
-                    file=sys.stderr
+                logger.warning(
+                    "msal_extensions not installed. "
+                    "Install with: pip install msal[broker] "
+                    "Falling back to in-memory cache (no persistence)."
                 )
             else:
-                print(
-                    f"Warning: Secure token cache not available on {platform.system()}. "
+                logger.warning(
+                    "Secure token cache not available on %s. "
                     "Using in-memory cache (no persistence).",
-                    file=sys.stderr
+                    platform.system()
                 )
         
         # Fallback: non-persistent in-memory cache
@@ -195,7 +196,7 @@ class GraphAuthSession:
                 
         except Exception as e:
             # Broker not available or other error - will fall back
-            print(f"WAM auth unavailable ({e}), falling back...", file=sys.stderr)
+            logger.warning("WAM auth unavailable (%s), falling back to next method", e)
             return None
         
         return None
@@ -225,7 +226,7 @@ class GraphAuthSession:
             if "access_token" in result:
                 return result["access_token"]
         except Exception as e:
-            print(f"Interactive auth failed ({e}), trying device code...", file=sys.stderr)
+            logger.warning("Interactive auth failed (%s), trying device code...", e)
             return None
         
         return None
