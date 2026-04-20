@@ -21,6 +21,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p winget-repo/_site
+          cp winget-repo/index.html winget-repo/_site/
           cp winget-repo/index.json winget-repo/_site/
           cp winget-repo/source.json winget-repo/_site/
           cp winget-repo/staticwebapp.config.json winget-repo/_site/
