@@ -1,0 +1,29 @@
+{
+  "tenant_id": "YOUR_TENANT_ID",
+  "client_id": "YOUR_CLIENT_ID",
+  "vault_path": "/home/thomas/knowledge",
+  "timezone": "America/Indiana/Indianapolis",
+  "mail": {
+    "include_sent": true,
+    "include_flagged": true,
+    "selected_folders": [
+      "sentitems"
+    ],
+    "max_items": 100
+  },
+  "graph": {
+    "max_page_size": 100,
+    "chat_message_limit_per_chat": 25,
+    "request_retry_count": 4,
+    "request_retry_base_seconds": 2
+  },
+  "auth": {
+    "mode": "interactive",
+    "prefer_azure_cli": false
+  },
+  "output": {
+    "write_raw_json": true,
+    "write_markdown": true
+  },
+  "token_cache_path": "~/.config/work-context-sync/token_cache.bin"
+}

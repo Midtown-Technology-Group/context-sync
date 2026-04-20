@@ -1,0 +1,19 @@
+{
+  "$schema": "https://aka.ms/winget-rest-source.schema.json",
+  "data": {
+    "sourceIdentifier": "mtg-internal",
+    "sourceName": "Midtown Technology Group Internal Tools",
+    "sourceType": "Microsoft.PreIndexed.Package",
+    "sourceUrl": "https://mtg-tools.azurestaticapps.net",
+    "sourceAgreements": {
+      "agreementUrl": "https://midtowntg.com/terms",
+      "agreement": [
+        {
+          "agreementLabel": "Internal Use Only",
+          "agreementText": "This package source is for Midtown Technology Group internal use only.",
+          "agreementUrl": "https://midtowntg.com/internal-use"
+        }
+      ]
+    }
+  }
+}

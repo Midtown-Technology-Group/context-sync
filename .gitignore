@@ -1,0 +1,57 @@
+# User-specific configs (contain personal paths)
+config.json
+config.windows.json
+!config.example.json
+
+# Virtual environment
+.venv/
+venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Token cache (development)
+token_cache.bin
+*.token_cache
+*.bin
+
+# Build artifacts
+dist/
+build/
+*.exe
+*.msi
+*.zip
+_site/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

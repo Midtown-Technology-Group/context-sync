@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "routes": [
+    {
+      "route": "/",
+      "rewrite": "/source.json",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    {
+      "route": "/index",
+      "rewrite": "/index.json",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    {
+      "route": "/information",
+      "rewrite": "/source.json",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    {
+      "route": "/packageManifests/*",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    {
+      "route": "/manifests/*",
+      "headers": {
+        "Content-Type": "text/yaml"
+      }
+    },
+    {
+      "route": "/login",
+      "rewrite": "/.auth/login/aad"
+    },
+    {
+      "route": "/logout",
+      "rewrite": "/.auth/logout"
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.json",
+    "exclude": ["/manifests/*", "/packageManifests/*", "/.auth/*"]
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".yaml": "text/yaml",
+    ".yml": "text/yaml"
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.json"
+    },
+    "401": {
+      "redirect": "/login",
+      "statusCode": 302
+    }
+  },
+  "globalHeaders": {
+    "content-security-policy": "default-src 'self' https:;",
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff"
+  },
+  "auth": {
+    "identityProviders": {
+      "azureActiveDirectory": {
+        "registration": {
+          "openIdIssuer": "https://login.microsoftonline.com/a3599b15-c39c-4b41-a219-7e24dd5b5190/v2.0",
+          "clientIdSettingName": "AAD_CLIENT_ID",
+          "clientSecretSettingName": "AAD_CLIENT_SECRET"
+        },
+        "login": {
+          "loginParameters": ["scope=openid profile"]
+        }
+      }
+    }
+  },
+  "platform": {
+    "apiRuntime": "node:18"
+  }
+}

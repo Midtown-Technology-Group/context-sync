@@ -1,0 +1,50 @@
+# Created using wingetcreate 1.5.7.0
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.5.0.schema.json
+
+PackageIdentifier: MidtownTechnologyGroup.WorkContextSync
+PackageVersion: 1.0.0
+PackageLocale: en-US
+Publisher: Midtown Technology Group LLC
+PublisherUrl: https://midtowntg.com
+PublisherSupportUrl: https://github.com/midtowntg/work-context-sync/issues
+Author: Thomas Bray
+PackageName: Work Context Sync
+PackageUrl: https://github.com/midtowntg/work-context-sync
+License: MIT
+LicenseUrl: https://github.com/midtowntg/work-context-sync/blob/main/LICENSE
+Copyright: Copyright (c) 2026 Midtown Technology Group LLC
+ShortDescription: Sync Microsoft 365 work context to LogSeq knowledge graph
+Description: |
+  Work Context Sync fetches your daily work data from Microsoft 365
+  (calendar, email, tasks, Teams) and writes it to your LogSeq knowledge
+  graph for GTD-style morning reviews.
+  
+  Features:
+  - Automatic daily sync from Microsoft Graph API
+  - Secure DPAPI-encrypted token storage
+  - Support for Calendar, Email, To Do, Teams data
+  - Markdown output for LogSeq/obsidian
+  - No admin consent required
+Moniker: wcsync
+Tags:
+  - microsoft365
+  - graph-api
+  - logseq
+  - obsidian
+  - gtd
+  - productivity
+  - notes
+  - knowledge-management
+  - calendar
+  - email
+  - tasks
+ReleaseNotes: |
+  Initial release:
+  - Microsoft 365 sync (Calendar, Mail, To Do, Teams)
+  - Windows DPAPI token encryption
+  - WAM broker authentication
+  - MSI installer
+  - Winget distribution
+ReleaseNotesUrl: https://github.com/midtowntg/work-context-sync/releases/tag/v1.0.0
+ManifestType: defaultLocale
+ManifestVersion: 1.5.0

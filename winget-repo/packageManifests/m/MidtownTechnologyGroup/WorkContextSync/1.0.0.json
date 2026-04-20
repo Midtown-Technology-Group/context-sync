@@ -1,0 +1,44 @@
+{
+  "$schema": "https://aka.ms/winget-rest-source.schema.json",
+  "data": {
+    "packageIdentifier": "MidtownTechnologyGroup.WorkContextSync",
+    "versions": [
+      {
+        "packageVersion": "1.0.0",
+        "defaultLocale": {
+          "packageLocale": "en-US",
+          "publisher": "Midtown Technology Group LLC",
+          "publisherUrl": "https://midtowntg.com",
+          "publisherSupportUrl": "https://github.com/midtowntg/work-context-sync/issues",
+          "author": "Thomas Bray",
+          "packageName": "Work Context Sync",
+          "packageUrl": "https://github.com/midtowntg/work-context-sync",
+          "license": "MIT",
+          "licenseUrl": "https://github.com/midtowntg/work-context-sync/blob/main/LICENSE",
+          "copyright": "Copyright (c) 2026 Midtown Technology Group LLC",
+          "shortDescription": "Sync Microsoft 365 work context to LogSeq knowledge graph",
+          "description": "Work Context Sync fetches your daily work data from Microsoft 365 (calendar, email, tasks, Teams) and writes it to your LogSeq knowledge graph for GTD-style morning reviews.",
+          "moniker": "wcsync",
+          "tags": ["microsoft365", "graph-api", "logseq", "gtd", "productivity", "notes"],
+          "releaseNotes": "Initial release with Microsoft 365 sync support.",
+          "releaseNotesUrl": "https://github.com/midtowntg/work-context-sync/releases/tag/v1.0.0"
+        },
+        "installers": [
+          {
+            "architecture": "x64",
+            "installerType": "msi",
+            "scope": "machine",
+            "installerUrl": "https://github.com/midtowntg/work-context-sync/releases/download/v1.0.0/work-context-sync.msi",
+            "installerSha256": "PLACEHOLDER_SHA256",
+            "productCode": "{e02be6f7-063a-46a6-b2cc-109d5f51055c}",
+            "upgradeBehavior": "install",
+            "installerSwitches": {
+              "silent": "/qn",
+              "silentWithProgress": "/qb"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

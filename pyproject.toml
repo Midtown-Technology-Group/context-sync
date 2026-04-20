@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mtg-work-context-sync"
+version = "1.0.0"
+description = "Sync Microsoft 365 work context to LogSeq knowledge graph"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Thomas Bray", email = "thomas@midtowntg.com"}
+]
+keywords = ["microsoft365", "graph-api", "logseq", "gtd", "productivity"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Information Technology",
+    "Topic :: Office/Business :: Scheduling",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+    "msal>=1.29",
+    "pydantic>=2.0",
+    "requests>=2.28",
+]
+
+[project.optional-dependencies]
+windows = ["msal_extensions>=1.0"]
+dev = ["pytest>=7.0", "pytest-asyncio", "black", "mypy", "pyinstaller"]
+
+[project.scripts]
+work-context-sync = "work_context_sync.app:main"
+wcsync = "work_context_sync.app:main"
+
+[project.urls]
+Homepage = "https://github.com/midtowntg/work-context-sync"
+Documentation = "https://github.com/midtowntg/work-context-sync/wiki"
+Repository = "https://github.com/midtowntg/work-context-sync"
+Issues = "https://github.com/midtowntg/work-context-sync/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+work_context_sync = ["py.typed"]
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"

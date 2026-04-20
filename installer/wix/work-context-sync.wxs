@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WiX installer for work-context-sync
+  
+  Build:
+    wix build -o work-context-sync.msi work-context-sync.wxs
+  
+  Features:
+    - Installs to Program Files\Work Context Sync
+    - Adds to PATH
+    - Creates Start Menu shortcut
+    - Includes config example
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  
+  <Package Name="Work Context Sync"
+           Version="1.0.0"
+           Manufacturer="Midtown Technology Group"
+           UpgradeCode="e02be6f7-063a-46a6-b2cc-109d5f51055c"
+           Scope="perMachine">
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    
+    <!-- Icon -->
+    <Icon Id="AppIcon.ico" SourceFile="assets\icon.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.ico" />
+    
+    <!-- Features -->
+    <Feature Id="MainApplication" Title="Work Context Sync" Level="1">
+      <ComponentRef Id="MainExecutable" />
+      <ComponentRef Id="ConfigExample" />
+      <ComponentRef Id="Documentation" />
+      <ComponentRef Id="PathEnvironment" />
+      <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+    
+    <!-- Directory Structure -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="Work Context Sync">
+        <Component Id="MainExecutable" Guid="*">
+          <File Id="WorkContextSync.exe" 
+                Source="..\..\dist\work-context-sync.exe"
+                KeyPath="yes">
+            <Shortcut Id="StartMenuShortcut"
+                      Directory="ProgramMenuFolder"
+                      Name="Work Context Sync"
+                      Description="Sync Microsoft 365 to LogSeq"
+                      WorkingDirectory="INSTALLFOLDER"
+                      Icon="AppIcon.ico" />
+          </File>
+        </Component>
+        
+        <Component Id="ConfigExample" Guid="*">
+          <File Id="ConfigExample.json"
+                Source="..\..\config.example.json"
+                Name="config.example.json" />
+        </Component>
+        
+        <Component Id="Documentation" Guid="*">
+          <File Id="README.md"
+                Source="..\..\README.md" />
+        </Component>
+        
+        <Component Id="PathEnvironment" Guid="*">
+          <Environment Id="PATH"
+                       Name="PATH"
+                       Value="[INSTALLFOLDER]"
+                       Permanent="no"
+                       Part="last"
+                       Action="set"
+                       System="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    
+    <!-- Start Menu -->
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ApplicationProgramsFolder" Name="Work Context Sync">
+        <Component Id="StartMenuShortcut" Guid="*">
+          <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+          <RegistryValue Root="HKCU"
+                         Key="Software\Midtown Technology Group\Work Context Sync"
+                         Name="installed"
+                         Type="integer"
+                         Value="1"
+                         KeyPath="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+    
+    <!-- UI -->
+    <ui:WixUI Id="WixUI_InstallDir" />
+    <ui:WixUI_CustomizeControl Id="WixUI_InstallDir" />    
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    
+    <!-- Custom Actions -->
+    <CustomAction Id="LaunchApplication"
+                  Directory="INSTALLFOLDER"
+                  ExeCommand="[INSTALLFOLDER]work-context-sync.exe --help"
+                  Execute="immediate"
+                  Return="asyncNoWait" />
+    
+    <!-- Install Sequence -->
+    <InstallExecuteSequence>
+      <Custom Action="LaunchApplication" After="InstallFinalize" />
+    </InstallExecuteSequence>
+    
+    <!-- Launch after install checkbox -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch Work Context Sync" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    
+  </Package>
+</Wix>

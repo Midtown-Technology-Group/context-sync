@@ -1,0 +1,21 @@
+{
+  "$schema": "https://aka.ms/winget-rest-source.schema.json",
+  "packages": [
+    {
+      "PackageIdentifier": "MidtownTechnologyGroup.WorkContextSync",
+      "PackageName": "Work Context Sync",
+      "Publisher": "Midtown Technology Group LLC",
+      "Versions": [
+        {
+          "PackageVersion": "1.0.0",
+          "DefaultLocale": {
+            "PackageLocale": "en-US",
+            "Publisher": "Midtown Technology Group LLC",
+            "PackageName": "Work Context Sync",
+            "ShortDescription": "Sync Microsoft 365 work context to LogSeq knowledge graph"
+          }
+        }
+      ]
+    }
+  ]
+}

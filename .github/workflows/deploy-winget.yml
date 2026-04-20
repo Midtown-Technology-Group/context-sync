@@ -1,0 +1,81 @@
+name: Deploy Winget Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  deploy-winget-repo:
+    name: Deploy to Azure Static Web Apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js (for SWA CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Azure Static Web Apps CLI
+        run: npm install -g @azure/static-web-apps-cli
+      
+      - name: Download release artifacts
+        uses: robinraju/release-downloader@v1.8
+        with:
+          latest: true
+          fileName: "work-context-sync.msi"
+          out-file-path: "dist/"
+      
+      - name: Calculate SHA256
+        id: sha256
+        run: |
+          SHA256=$(sha256sum dist/work-context-sync.msi | cut -d ' ' -f 1)
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "MSI SHA256: $SHA256"
+      
+      - name: Update manifests with SHA256
+        run: |
+          find winget-repo -name "*.json" -o -name "*.yaml" | while read file; do
+            if grep -q "PLACEHOLDER_SHA256" "$file"; then
+              sed -i "s/PLACEHOLDER_SHA256/${{ steps.sha256.outputs.sha256 }}/g" "$file"
+              echo "Updated: $file"
+            fi
+          done
+      
+      - name: Prepare site
+        run: |
+          mkdir -p winget-repo/_site
+          cp winget-repo/index.json winget-repo/_site/
+          cp winget-repo/source.json winget-repo/_site/
+          cp winget-repo/staticwebapp.config.json winget-repo/_site/
+          cp -r winget-repo/packageManifests winget-repo/_site/
+          cp -r winget-repo/manifests winget-repo/_site/
+      
+      - name: Deploy to Azure SWA
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_DEPLOYMENT_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "winget-repo/_site"
+          skip_app_build: true
+      
+      - name: Comment on release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const release = context.payload.release;
+            if (release) {
+              github.rest.repos.updateRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id,
+                body: release.body + `\n\n## Winget Repository\nInstall via private repo:\n\`\`\`powershell\nwinget source add -n mtg-tools -a https://${{ secrets.AZURE_SWA_HOSTNAME }}\nwinget install --source mtg-tools MidtownTechnologyGroup.WorkContextSync\n\`\`\``
+              });
+            }
