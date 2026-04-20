@@ -5,6 +5,8 @@ config.windows.json
 
 # Virtual environment
 .venv/
+.venv.linux/
+.venv.backup/
 venv/
 env/
 ENV/
