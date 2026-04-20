@@ -29,11 +29,19 @@ setup(
         "windows": [
             "msal_extensions>=1.0",  # Required for DPAPI encryption
         ],
+        "test": [
+            "pytest>=7.0",
+            "pytest-asyncio>=0.21.0",
+            "pytest-cov>=4.0",
+            "httpx>=0.27.0",
+        ],
         "dev": [
             "pytest>=7.0",
-            "pytest-asyncio",
-            "black",
-            "mypy",
+            "pytest-asyncio>=0.21.0",
+            "pytest-cov>=4.0",
+            "black>=23.0",
+            "mypy>=1.0",
+            "ruff>=0.1.0",
         ],
     },
     entry_points={
