@@ -79,7 +79,7 @@ def write_markdown_output(config, target_date: date, result: dict) -> None:
     if not config.output.write_markdown:
         return
 
-    out_dir = Path(config.vault_path) / "work-context" / "daily"
+    out_dir = Path(config.vault_path) / "pages"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     calendar_payload = result.get("calendar") or {}
@@ -191,5 +191,5 @@ def write_markdown_output(config, target_date: date, result: dict) -> None:
         "- ",
     ])
 
-    path = out_dir / f"{target_date.isoformat()}.md"
+    path = out_dir / f"work-context___{target_date.isoformat()}.md"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
