@@ -1,0 +1,41 @@
+name: Initial Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-winget-repo:
+    name: Deploy to Azure Static Web Apps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js (for SWA CLI)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install Azure Static Web Apps CLI
+        run: npm install -g @azure/static-web-apps-cli
+      
+      - name: Prepare site
+        run: |
+          mkdir -p winget-repo/_site
+          cp winget-repo/index.json winget-repo/_site/
+          cp winget-repo/source.json winget-repo/_site/
+          cp winget-repo/staticwebapp.config.json winget-repo/_site/
+          cp -r winget-repo/packageManifests winget-repo/_site/
+          cp -r winget-repo/manifests winget-repo/_site/
+      
+      - name: Deploy to Azure SWA
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_DEPLOYMENT_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "winget-repo/_site"
+          skip_app_build: true
+      
+      - name: Comment success
+        run: |
+          echo "Winget repository deployed to: https://${{ secrets.AZURE_SWA_HOSTNAME }}"
