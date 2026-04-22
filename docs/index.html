@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Sync | Microsoft 365 Knowledge Bridge</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="hero">
+        <div class="container">
+            <div class="logo">
+                <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="4"/>
+                    <path d="M25 40L35 50L55 30" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="40" cy="40" r="8" fill="currentColor"/>
+                </svg>
+            </div>
+            <h1>Context Sync</h1>
+            <p class="tagline">Sync Microsoft 365 into your knowledge graph</p>
+            <p class="description">Automatic daily work context extraction from Outlook, Teams, and To Do. Built for GTD practitioners who want their digital ecosystem organized.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/Midtown-Technology-Group/context-sync" class="btn btn-primary">View on GitHub</a>
+                <a href="#install" class="btn btn-secondary">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="features">
+            <div class="container">
+                <h2>Features</h2>
+                <div class="feature-grid">
+                    <div class="feature">
+                        <div class="feature-icon">📧</div>
+                        <h3>Email Context</h3>
+                        <p>Extract flagged emails and important conversations from Outlook. Never lose track of follow-ups.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">✅</div>
+                        <h3>Task Sync</h3>
+                        <p>Pull Microsoft To Do tasks into your daily notes. See what's actionable at a glance.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">💬</div>
+                        <h3>Teams Activity</h3>
+                        <p>Capture important chat threads and mentions. Keep context from scattered conversations.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">📅</div>
+                        <h3>Calendar Integration</h3>
+                        <p>See your day's meetings with attendee context. Prep for conversations automatically.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🗂️</div>
+                        <h3>GTD-Ready</h3>
+                        <p>Structured output for projects, next actions, waiting-for, and someday/maybe lists.</p>
+                    </div>
+                    <div class="feature">
+                        <div class="feature-icon">🌐</div>
+                        <h3>Knowledge Graph</h3>
+                        <p>Markdown output integrates with Obsidian, Logseq, or any Zettelkasten system.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="install" id="install">
+            <div class="container">
+                <h2>Installation</h2>
+                <div class="install-methods">
+                    <div class="install-method">
+                        <h3>Quick Start</h3>
+                        <div class="code-block">
+                            <code># Clone the repository
+git clone https://github.com/Midtown-Technology-Group/context-sync.git
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure
+python -m context_sync setup</code>
+                        </div>
+                    </div>
+                    <div class="install-method">
+                        <h3>Azure Deploy</h3>
+                        <div class="code-block">
+                            <code># Deploy to Azure Functions
+./deploy.ps1 -Environment production
+
+# Or use the Azure portal template
+# See azure-deployment.json</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="usage">
+            <div class="container">
+                <h2>Daily Workflow</h2>
+                <div class="workflow">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <p><strong>Morning sync</strong> automatically runs</p>
+                    </div>
+                    <div class="step-arrow">→</div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <p>Review <code>work-context/daily/YYYY-MM-DD.md</code></p>
+                    </div>
+                    <div class="step-arrow">→</div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <p>Process inbox items into GTD actions</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tech-stack">
+            <div class="container">
+                <h2>Built With</h2>
+                <div class="stack-list">
+                    <a href="https://python.org" class="stack-item">Python 3.11+</a>
+                    <a href="https://learn.microsoft.com/en-us/graph/" class="stack-item">Microsoft Graph API</a>
+                    <a href="https://azure.microsoft.com/en-us/services/functions/" class="stack-item">Azure Functions</a>
+                    <a href="https://www.djangoproject.com/" class="stack-item">Django REST Framework</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Built by <a href="https://midtowntg.com">Midtown Technology Group</a></p>
+            <p>Open source under AGPL-3.0</p>
+            <div class="footer-links">
+                <a href="https://github.com/Midtown-Technology-Group/context-sync">GitHub</a>
+                <a href="https://github.com/Midtown-Technology-Group/context-sync/issues">Issues</a>
+                <a href="https://github.com/Midtown-Technology-Group/context-sync/blob/main/LICENSE">License</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
