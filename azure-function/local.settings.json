@@ -1,0 +1,9 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "REBALANCE_QUEUE_NAME": "rebalance-requests",
+    "WEBHOOK_SECRET": "local-dev-secret"
+  }
+}

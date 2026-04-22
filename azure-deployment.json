@@ -1,0 +1,232 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "title": "TimeBlock Azure Infrastructure",
+    "description": "Azure Function + Queue Storage for work-context-sync timeblocking service",
+    "costEstimate": "$2-5/month for typical MSP team usage"
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "defaultValue": "centralus",
+      "allowedValues": [
+        "centralus",
+        "eastus",
+        "eastus2",
+        "westus2"
+      ],
+      "metadata": {
+        "description": "Azure region for all resources (Central US is cost-optimized)"
+      }
+    },
+    "environment": {
+      "type": "string",
+      "defaultValue": "prod",
+      "allowedValues": [
+        "dev",
+        "prod"
+      ],
+      "metadata": {
+        "description": "Environment suffix for resource naming"
+      }
+    },
+    "teamName": {
+      "type": "string",
+      "defaultValue": "mtg",
+      "metadata": {
+        "description": "Short team/company identifier for resource naming"
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('teamName'), 'timeblock', uniqueString(resourceGroup().id))]",
+      "metadata": {
+        "description": "Storage account name (auto-generated if not provided)"
+      }
+    },
+    "functionAppName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('teamName'), '-timeblock-func-', parameters('environment'))]",
+      "metadata": {
+        "description": "Function App name"
+      }
+    }
+  },
+  "variables": {
+    "storageAccountNameClean": "[toLower(replace(replace(parameters('storageAccountName'), '-', ''), '_', ''))]",
+    "queueName": "rebalance-requests",
+    "appInsightsName": "[concat(parameters('functionAppName'), '-insights")",
+    "hostingPlanName": "[concat(parameters('functionAppName'), '-plan")"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-01-01",
+      "name": "[variables('storageAccountNameClean')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS",
+        "tier": "Standard"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "accessTier": "Hot",
+        "supportsHttpsTrafficOnly": true,
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": false
+      },
+      "tags": {
+        "Purpose": "TimeBlock Queue Storage",
+        "Environment": "[parameters('environment')]",
+        "CostCenter": "IT-Operations"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/queueServices/queues",
+      "apiVersion": "2023-01-01",
+      "name": "[concat(variables('storageAccountNameClean'), '/default/', variables('queueName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountNameClean'))]"
+      ],
+      "properties": {}
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('appInsightsName')]",
+      "location": "[parameters('location')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "Request_Source": "rest"
+      },
+      "tags": {
+        "hidden-link:/subscriptions/resourceGroups/providers/Microsoft.Web/sites/functionAppName": "Resource"
+      }
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2022-03-01",
+      "name": "[variables('hostingPlanName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Y1",
+        "tier": "Dynamic",
+        "size": "Y1",
+        "family": "Y",
+        "capacity": 0
+      },
+      "kind": "functionapp",
+      "properties": {
+        "name": "[variables('hostingPlanName')]",
+        "computeMode": "Dynamic"
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2022-03-01",
+      "name": "[parameters('functionAppName')]",
+      "location": "[parameters('location')]",
+      "kind": "functionapp",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountNameClean'))]",
+        "[resourceId('Microsoft.Insights/components', variables('appInsightsName'))]"
+      ],
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "name": "[parameters('functionAppName')]",
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
+        "clientAffinityEnabled": false,
+        "siteConfig": {
+          "alwaysOn": false,
+          "functionAppScaleLimit": 5,
+          "minimumElasticInstanceCount": 0,
+          "appSettings": [
+            {
+              "name": "AzureWebJobsStorage",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountNameClean'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountNameClean')), '2023-01-01').keys[0].value, ';EndpointSuffix=core.windows.net')]"
+            },
+            {
+              "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+              "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('storageAccountNameClean'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountNameClean')), '2023-01-01').keys[0].value, ';EndpointSuffix=core.windows.net')]"
+            },
+            {
+              "name": "WEBSITE_CONTENTSHARE",
+              "value": "[toLower(parameters('functionAppName'))]"
+            },
+            {
+              "name": "FUNCTIONS_EXTENSION_VERSION",
+              "value": "~4"
+            },
+            {
+              "name": "FUNCTIONS_WORKER_RUNTIME",
+              "value": "python"
+            },
+            {
+              "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').InstrumentationKey]"
+            },
+            {
+              "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsName')), '2020-02-02').ConnectionString]"
+            },
+            {
+              "name": "REBALANCE_QUEUE_NAME",
+              "value": "[variables('queueName')]"
+            },
+            {
+              "name": "WEBHOOK_SECRET",
+              "value": "[concat('wb-', uniqueString(resourceGroup().id, subscription().subscriptionId))]"
+            }
+          ]
+        }
+      },
+      "tags": {
+        "Purpose": "TimeBlock Webhook Handler",
+        "Environment": "[parameters('environment')]",
+        "CostCenter": "IT-Operations"
+      }
+    }
+  ],
+  "outputs": {
+    "functionAppName": {
+      "type": "string",
+      "value": "[parameters('functionAppName')]",
+      "metadata": {
+        "description": "Name of the deployed Function App"
+      }
+    },
+    "functionAppUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('functionAppName'), '.azurewebsites.net')]",
+      "metadata": {
+        "description": "URL of the Function App (use this for webhook registration)"
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[variables('storageAccountNameClean')]",
+      "metadata": {
+        "description": "Storage account name for queue storage"
+      }
+    },
+    "deploymentCommand": {
+      "type": "string",
+      "value": "[concat('az deployment group create --resource-group ', resourceGroup().name, ' --template-file azure-deployment.json --parameters location=', parameters('location'), ' environment=', parameters('environment'))]",
+      "metadata": {
+        "description": "Command to deploy this template"
+      }
+    },
+    "estimatedMonthlyCost": {
+      "type": "string",
+      "value": "$2-5 USD/month (Consumption plan + Standard storage)",
+      "metadata": {
+        "description": "Estimated monthly cost for typical usage"
+      }
+    }
+  }
+}

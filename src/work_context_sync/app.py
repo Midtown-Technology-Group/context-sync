@@ -37,6 +37,10 @@ def build_parser() -> argparse.ArgumentParser:
     range_parser.add_argument("--config", default="config.json", help="Path to config file")
     range_parser.add_argument("--sources", nargs="*", choices=["calendar", "mail", "todo", "teams_meetings", "teams_chats"], help="Optional subset of sources")
 
+    # TimeBlock command
+    from .commands.timeblock import register_timeblock_command
+    register_timeblock_command(subparsers)
+
     return parser
 
 
@@ -92,6 +96,13 @@ def main() -> None:
             raise ValueError("end_date must be on or after start_date")
         for target in iter_date_range(start, end):
             run_sync(config=config, target_date=target, selected_sources=args.sources)
+        return
+
+    if args.command == "timeblock":
+        from .commands.timeblock import run_timeblock_command
+        exit_code = run_timeblock_command(args)
+        import sys
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":
