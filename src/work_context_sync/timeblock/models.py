@@ -22,6 +22,7 @@ class TaskSource(Enum):
     """Where the task originated."""
     TODO = "todo"
     MAIL = "mail"
+    PLANNER = "planner"  # Microsoft Planner (project tasks)
     HALO = "halo"  # Future: PSA integration
     HABIT = "habit"
     RECURRING = "recurring"

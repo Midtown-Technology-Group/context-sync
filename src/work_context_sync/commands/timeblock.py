@@ -51,9 +51,21 @@ def register_timeblock_command(subparsers: argparse._SubParsersAction) -> None:
         help="Create actual Exchange calendar events"
     )
     mode_group.add_argument(
-        "--tentative",
+        "--stats",
         action="store_true",
-        help="Mark all today's timeblocks as tentative (rollback)"
+        help="Show learning statistics and patterns"
+    )
+    
+    mode_group.add_argument(
+        "--analyze",
+        action="store_true",
+        help="Analyze meeting patterns and focus time (weekly report)"
+    )
+    
+    mode_group.add_argument(
+        "--include-planner",
+        action="store_true",
+        help="Include Microsoft Planner tasks in scheduling"
     )
     mode_group.add_argument(
         "--rebalance",
@@ -95,6 +107,10 @@ def run_timeblock_command(args: argparse.Namespace) -> int:
     auth_session = GraphAuthSession(config)
     graph_client = GraphClient(config=config, auth_session=auth_session)
     
+    # Pass graph_client to analyzer for Planner integration
+    global _graph_client_for_analyzer
+    _graph_client_for_analyzer = graph_client
+    
     # Handle special modes first
     if args.tentative:
         return _mark_tentative(graph_client, target_date)
@@ -108,8 +124,11 @@ def run_timeblock_command(args: argparse.Namespace) -> int:
     if args.stats:
         return _show_stats(graph_client, target_date)
     
+    if args.analyze:
+        return _analyze_meetings(graph_client, target_date)
+    
     # Main scheduling flow
-    return _create_schedule(graph_client, target_date, args.apply, args.strategy, config)
+    return _create_schedule(graph_client, target_date, args.apply, args.strategy, config, args.include_planner)
 
 
 def _create_schedule(
@@ -117,7 +136,8 @@ def _create_schedule(
     target_date: date,
     apply: bool,
     strategy: str,
-    config
+    config,
+    include_planner: bool = False
 ) -> int:
     """Create and optionally apply timeblock schedule."""
     logger.info(f"Creating {strategy} schedule for {target_date}")
@@ -129,7 +149,7 @@ def _create_schedule(
     
     # Step 2: Analyze tasks
     logger.info("Analyzing tasks...")
-    analyzer = TaskAnalyzer()
+    analyzer = TaskAnalyzer(graph_client if include_planner else None)
     
     # Load synced data
     import json
@@ -150,8 +170,15 @@ def _create_schedule(
             mail_data = json.load(f)
         all_tasks.extend(analyzer.analyze_flagged_emails(mail_data.get("items", [{}])[0] if mail_data.get("items") else {}))
     
+    # Step 3: Add Planner tasks if requested
+    if include_planner and graph_client:
+        logger.info("Fetching Planner tasks...")
+        planner_tasks = analyzer.analyze_planner_tasks(target_date)
+        all_tasks.extend(planner_tasks)
+        logger.info(f"Added {len(planner_tasks)} Planner tasks")
+    
     if not all_tasks:
-        print("No tasks found to schedule. Add some To Do items or flag some emails!")
+        print("No tasks found to schedule. Add some To Do items, flag some emails, or create Planner tasks!")
         return 0
     
     logger.info(f"Found {len(all_tasks)} tasks to schedule")
@@ -362,3 +389,33 @@ def _append_to_daily_note(config, target_date: date, recommendation) -> None:
         f.write(f"\n{content}\n")
     
     logger.info(f"Appended schedule to {daily_path}")
+
+
+def _analyze_meetings(graph_client, target_date: date) -> int:
+    """Analyze meeting patterns and generate weekly report."""
+    from ..analytics import MeetingAnalyzer
+    from datetime import timedelta
+    
+    print(f"📊 Analyzing meetings for week starting {target_date}...")
+    
+    # Get Monday of this week
+    monday = target_date - timedelta(days=target_date.weekday())
+    
+    analyzer = MeetingAnalyzer(graph_client)
+    report = analyzer.analyze_week(monday)
+    
+    # Print report
+    print(analyzer.to_markdown(report))
+    
+    # Append to daily note
+    from pathlib import Path
+    from ..config import load_config
+    config = load_config("config.json")
+    
+    daily_path = Path(config.vault_path) / "daily" / f"{target_date}.md"
+    if daily_path.exists():
+        with open(daily_path, "a", encoding="utf-8") as f:
+            f.write(f"\n{analyzer.to_markdown(report)}\n")
+        print(f"✅ Report appended to daily note")
+    
+    return 0

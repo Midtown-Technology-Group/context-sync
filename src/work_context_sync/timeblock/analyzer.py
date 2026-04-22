@@ -5,6 +5,7 @@ import re
 from datetime import timedelta, date
 from typing import List, Dict, Any, Optional
 
+from ..sources.planner import PlannerSource
 from .models import Task, TaskCategory, TaskSource
 
 
@@ -44,8 +45,10 @@ class TaskAnalyzer:
         (r"client|customer|vip|escalation", 0.5),
     ]
     
-    def __init__(self):
+    def __init__(self, graph_client=None):
         self.today = date.today()
+        self.graph_client = graph_client
+        self.planner_source = PlannerSource(graph_client) if graph_client else None
     
     def analyze_todo_tasks(self, todo_data: Dict[str, Any]) -> List[Task]:
         """Extract and categorize tasks from To Do data."""
@@ -252,3 +255,11 @@ class TaskAnalyzer:
         if due:
             return due <= self.today
         return False
+    
+    def analyze_planner_tasks(self, target_date: date = None) -> List[Task]:
+        """Fetch and analyze Microsoft Planner tasks."""
+        if not self.planner_source:
+            return []
+        
+        target = target_date or self.today
+        return self.planner_source.fetch_planner_tasks(target)
