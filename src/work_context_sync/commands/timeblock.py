@@ -86,12 +86,6 @@ def register_timeblock_command(subparsers: argparse._SubParsersAction) -> None:
         help="Check for missed timeblocks and notify"
     )
     
-    timeblock_parser.add_argument(
-        "--stats",
-        action="store_true",
-        help="Show learning statistics and patterns"
-    )
-
 
 def run_timeblock_command(args: argparse.Namespace) -> int:
     """Execute the timeblock command."""

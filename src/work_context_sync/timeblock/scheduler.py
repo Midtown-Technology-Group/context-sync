@@ -339,7 +339,7 @@ class AggressiveScheduler:
     
     def _ensure_min_unstructured_time(self, blocks: List[TimeBlock], context: ScheduleContext) -> List[TimeBlock]:
         """Ensure at least 60 min of unstructured time."""
-        total_scheduled = sum(b.duration for b in blocks, timedelta())
+        total_scheduled = sum((b.duration for b in blocks), timedelta())
         
         work_day_minutes = (
             datetime.combine(context.target_date, context.constraints.work_end) -
