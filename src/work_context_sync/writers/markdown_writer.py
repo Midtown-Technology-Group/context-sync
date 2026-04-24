@@ -191,5 +191,5 @@ def write_markdown_output(config, target_date: date, result: dict) -> None:
         "- ",
     ])
 
-    path = out_dir / f"work-context___{target_date.isoformat()}.md"
+    path = out_dir / f"work-context.daily.{target_date.isoformat()}.md"
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
