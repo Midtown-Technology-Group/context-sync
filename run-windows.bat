@@ -4,5 +4,6 @@ REM Double-click or run from Command Prompt
 
 cd /d "%~dp0"
 echo Starting work-context sync...
-python -m work_context_sync.app sync today --config config.json
+set "PYTHONPATH=%~dp0src"
+"%~dp0.venv\Scripts\python.exe" -m work_context_sync.app sync today --config config.windows.json
 pause
