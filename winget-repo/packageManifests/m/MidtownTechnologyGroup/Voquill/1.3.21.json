@@ -1,0 +1,44 @@
+{
+  "$schema": "https://aka.ms/winget-rest-source.schema.json",
+  "data": {
+    "packageIdentifier": "MidtownTechnologyGroup.Voquill",
+    "versions": [
+      {
+        "packageVersion": "1.3.21",
+        "defaultLocale": {
+          "packageLocale": "en-US",
+          "publisher": "Midtown Technology Group LLC",
+          "publisherUrl": "https://midtowntg.com",
+          "publisherSupportUrl": "https://github.com/MTG-Thomas/voquill/issues",
+          "author": "Thomas Bray",
+          "packageName": "Voquill",
+          "packageUrl": "https://github.com/MTG-Thomas/voquill",
+          "license": "AGPL-3.0-only",
+          "licenseUrl": "https://github.com/MTG-Thomas/voquill/blob/main/LICENSE",
+          "copyright": "Copyright (c) 2026 Midtown Technology Group LLC",
+          "shortDescription": "Cross-platform push-to-talk dictation app.",
+          "description": "Voquill is a cross-platform push-to-talk dictation app with Whisper-powered speech recognition.",
+          "moniker": "voquill",
+          "tags": ["dictation", "speech-to-text", "whisper", "productivity"],
+          "releaseNotes": "Adds Windows 11 native styling defaults, CI release fixes, sccache build acceleration, and macOS release artifacts.",
+          "releaseNotesUrl": "https://github.com/MTG-Thomas/voquill/releases/tag/mtg-v1.3.21"
+        },
+        "installers": [
+          {
+            "architecture": "x64",
+            "installerType": "wix",
+            "scope": "user",
+            "installerUrl": "https://github.com/MTG-Thomas/voquill/releases/download/mtg-v1.3.21/Voquill_1.3.21_x64_en-US.msi",
+            "installerSha256": "50F74DD0B3AF339D3A31DE5B838B4F9AF2F7782E216CA54D1362FB0D639CBBDD",
+            "productCode": "{6DA0A05E-4595-4328-BF8B-75141A865F39}",
+            "upgradeBehavior": "install",
+            "installerSwitches": {
+              "silent": "/qn",
+              "silentWithProgress": "/qb"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
