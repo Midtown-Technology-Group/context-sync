@@ -16,22 +16,6 @@
           }
         }
       ]
-    },
-    {
-      "PackageIdentifier": "MidtownTechnologyGroup.Voquill",
-      "PackageName": "Voquill",
-      "Publisher": "Midtown Technology Group LLC",
-      "Versions": [
-        {
-          "PackageVersion": "1.3.21",
-          "DefaultLocale": {
-            "PackageLocale": "en-US",
-            "Publisher": "Midtown Technology Group LLC",
-            "PackageName": "Voquill",
-            "ShortDescription": "Cross-platform push-to-talk dictation app."
-          }
-        }
-      ]
     }
   ]
 }
