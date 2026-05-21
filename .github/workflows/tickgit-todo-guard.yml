@@ -1,0 +1,31 @@
+name: tickgit TODO guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: "07 14 * * 1-5"
+  workflow_dispatch:
+
+concurrency:
+  group: tickgit-todo-guard-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  todo-guard:
+    name: Detect new TODO comments
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: MTG-Thomas/tickgit@c592be8853f724966909b8a5fde2c550b2e74892 # v0.0.17
+        with:
+          baseline-file: .github/tickgit-baseline.csv
+          fail-on-new: "true"
+          match-phrases: TODO,FIXME,HACK
+          ignore-paths: .venv,.venv.linux,.venv.backup,venv,env,ENV,__pycache__,dist,build,_site,node_modules
