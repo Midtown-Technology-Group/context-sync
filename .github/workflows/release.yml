@@ -16,10 +16,10 @@ jobs:
     name: Build Python Wheel
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.11'
       
@@ -32,7 +32,7 @@ jobs:
         run: python -m build --wheel
       
       - name: Upload wheel artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: wheel
           path: dist/*.whl
@@ -41,10 +41,10 @@ jobs:
     name: Build Windows Executable
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.11'
       
@@ -59,7 +59,7 @@ jobs:
           pyinstaller work-context-sync.spec --clean --noconfirm
       
       - name: Upload executable artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: windows-exe
           path: dist/work-context-sync.exe
@@ -69,7 +69,7 @@ jobs:
           Compress-Archive -Path "dist/work-context-sync.exe","config.example.json","README.md" -DestinationPath "dist/work-context-sync-windows.zip"
       
       - name: Upload ZIP artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: windows-zip
           path: dist/work-context-sync-windows.zip
@@ -79,10 +79,10 @@ jobs:
     runs-on: windows-latest
     needs: build-windows-exe
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       
       - name: Download executable
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: windows-exe
           path: dist/
@@ -97,7 +97,7 @@ jobs:
           wix build -o dist/work-context-sync.msi installer/wix/work-context-sync.wxs
       
       - name: Upload MSI artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: windows-msi
           path: dist/work-context-sync.msi
@@ -109,10 +109,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: artifacts/
       
@@ -122,7 +122,7 @@ jobs:
       
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@26994186c0ac3ef5cae75ac16aa32e8153525f77 # v1
         with:
           name: Release ${{ github.ref_name || github.event.inputs.version }}
           draft: false
