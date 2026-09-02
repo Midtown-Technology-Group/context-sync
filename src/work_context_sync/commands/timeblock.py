@@ -369,9 +369,7 @@ def _get_existing_calendar(graph_client, target_date: date):
 
 def _append_to_daily_note(config, target_date: date, recommendation) -> None:
     """Append schedule to daily note."""
-    from pathlib import Path
-    
-    daily_path = Path(config.vault_path) / "daily" / f"{target_date}.md"
+    daily_path = _resolve_logseq_daily_note(config, target_date)
     if not daily_path.exists():
         logger.warning(f"Daily note not found: {daily_path}")
         return
@@ -383,6 +381,24 @@ def _append_to_daily_note(config, target_date: date, recommendation) -> None:
         f.write(f"\n{content}\n")
     
     logger.info(f"Appended schedule to {daily_path}")
+
+
+def _resolve_logseq_daily_note(config, target_date: date):
+    """Return the canonical LogSeq daily note path for this graph."""
+    from pathlib import Path
+
+    daily_dir = Path(config.vault_path) / "daily"
+    canonical_path = daily_dir / f"{target_date:%Y_%m_%d}.md"
+    legacy_path = daily_dir / f"{target_date.isoformat()}.md"
+
+    if legacy_path.exists() and not canonical_path.exists():
+        logger.warning(
+            "Refusing to append to legacy hyphenated daily note %s; create %s first",
+            legacy_path,
+            canonical_path,
+        )
+
+    return canonical_path
 
 
 def _analyze_meetings(graph_client, target_date: date) -> int:
@@ -402,11 +418,10 @@ def _analyze_meetings(graph_client, target_date: date) -> int:
     print(analyzer.to_markdown(report))
     
     # Append to daily note
-    from pathlib import Path
     from ..config import load_config
     config = load_config("config.json")
-    
-    daily_path = Path(config.vault_path) / "daily" / f"{target_date}.md"
+
+    daily_path = _resolve_logseq_daily_note(config, target_date)
     if daily_path.exists():
         with open(daily_path, "a", encoding="utf-8") as f:
             f.write(f"\n{analyzer.to_markdown(report)}\n")
