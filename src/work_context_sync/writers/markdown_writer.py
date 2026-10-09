@@ -144,18 +144,20 @@ def write_markdown_output(config, target_date: date, result: dict) -> None:
     else:
         lines.append("- ")
 
+    flagged_lines = []
     lines.extend(["", "## Sent Email"])
     if mail_items:
         for item in mail_items:
-            lines.append(_format_mail_line(item, tz))
+            mail_line = _format_mail_line(item, tz)
+            lines.append(mail_line)
+            if (item.get("flag") or {}).get("flagStatus") == "flagged" or item.get("importance") == "high":
+                flagged_lines.append(mail_line)
     else:
         lines.append("- ")
 
-    flagged_items = [item for item in mail_items if (item.get("flag") or {}).get("flagStatus") == "flagged" or item.get("importance") == "high"]
     lines.extend(["", "## Flagged / Important Email"])
-    if flagged_items:
-        for item in flagged_items:
-            lines.append(_format_mail_line(item, tz))
+    if flagged_lines:
+        lines.extend(flagged_lines)
     else:
         lines.append("- ")
 
