@@ -1,8 +1,9 @@
 """Offline regressions for the async source adapters."""
 
+import json
 from datetime import date
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
@@ -10,6 +11,7 @@ from work_context_sync.async_pipeline import (
     fetch_calendar_items_async,
     fetch_mail_items_async,
     fetch_todo_items_async,
+    run_async_sync,
 )
 from work_context_sync.sources.todo import fetch_todo_items
 
@@ -69,3 +71,38 @@ async def test_async_todo_preserves_lists_like_sync(mock_config, task_groups):
     assert actual == fetch_todo_items(sync_client, target)
     assert [entry["list"] for entry in actual["value"]] == lists
     assert async_client.get_all.await_count == 3
+
+
+@pytest.mark.asyncio
+async def test_async_sync_writes_successful_source_outputs(mock_config):
+    responses = {
+        "/me/calendarView": {"value": [{"id": "event-1", "subject": "Planning"}]},
+        "/me/mailFolders/sentitems/messages": {"value": [{"id": "mail-1", "subject": "Follow up"}]},
+        "/me/todo/lists": {"value": [{"id": "list-1", "displayName": "Work"}]},
+        "/me/todo/lists/list-1/tasks": {"value": []},
+    }
+    client = AsyncMock()
+    client.config = mock_config
+    client.get_all.side_effect = lambda path, params=None: responses[path]
+    with (
+        patch("work_context_sync.async_pipeline.AsyncGraphClient") as client_class,
+        patch("work_context_sync.auth.GraphAuthSession"),
+    ):
+        client_class.return_value.__aenter__ = AsyncMock(return_value=client)
+        client_class.return_value.__aexit__ = AsyncMock(return_value=False)
+        await run_async_sync(mock_config, date(2026, 10, 29))
+
+    raw_dir = mock_config.vault_path / "work-context/raw/graph"
+    for source in ["calendar", "mail", "todo"]:
+        payload = json.loads((raw_dir / f"2026-10-29-{source}.json").read_text())
+        assert payload["status"] == "ok"
+        assert payload["error"] is None
+        assert len(payload["items"]) == 1
+        if source == "todo":
+            assert payload["items"][0]["list"]["id"] == "list-1"
+            assert payload["items"][0]["tasks"] == []
+    markdown = (mock_config.vault_path / "pages/work-context___2026-10-29.md").read_text()
+    assert "## Sync issues" not in markdown
+    assert "Planning" in markdown
+    assert "Follow up" in markdown
+    assert "To Do lists synced: 1" in markdown
