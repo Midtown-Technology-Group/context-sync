@@ -24,6 +24,7 @@ setup(
         "msal>=1.29",
         "pydantic>=2.0",
         "requests>=2.28",
+        "httpx>=0.27.0",
     ],
     extras_require={
         "windows": [
