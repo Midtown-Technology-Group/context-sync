@@ -53,7 +53,7 @@ async def fetch_calendar_items_async(client: AsyncGraphClient, target_date: date
     result = await client.get_all("/me/calendarView", params=params)
     
     # Validate into typed models
-    from ..models.calendar import CalendarEvent
+    from .models.calendar import CalendarEvent
     validated = []
     for event_data in result.get("value", []):
         try:
@@ -83,7 +83,7 @@ async def fetch_mail_items_async(client: AsyncGraphClient, target_date: date) ->
     result = await client.get_all("/me/mailFolders/sentitems/messages", params=params)
     
     # Validate into typed models
-    from ..models.mail import MailMessage
+    from .models.mail import MailMessage
     validated = []
     for msg_data in result.get("value", []):
         try:
@@ -99,7 +99,7 @@ async def fetch_mail_items_async(client: AsyncGraphClient, target_date: date) ->
 async def fetch_todo_items_async(client: AsyncGraphClient, target_date: date) -> dict:
     """Async fetch todo items for target date."""
     from .sources.todo import _is_completed_on_target, _is_due_on_target
-    from ..models.todo import TodoTask
+    from .models.todo import TodoTask
     
     lists = await client.get_all("/me/todo/lists")
     items = []
