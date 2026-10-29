@@ -53,7 +53,7 @@ async def fetch_calendar_items_async(client: AsyncGraphClient, target_date: date
     result = await client.get_all("/me/calendarView", params=params)
     
     # Validate into typed models
-    from ..models.calendar import CalendarEvent
+    from .models.calendar import CalendarEvent
     validated = []
     for event_data in result.get("value", []):
         try:
@@ -83,7 +83,7 @@ async def fetch_mail_items_async(client: AsyncGraphClient, target_date: date) ->
     result = await client.get_all("/me/mailFolders/sentitems/messages", params=params)
     
     # Validate into typed models
-    from ..models.mail import MailMessage
+    from .models.mail import MailMessage
     validated = []
     for msg_data in result.get("value", []):
         try:
@@ -99,7 +99,7 @@ async def fetch_mail_items_async(client: AsyncGraphClient, target_date: date) ->
 async def fetch_todo_items_async(client: AsyncGraphClient, target_date: date) -> dict:
     """Async fetch todo items for target date."""
     from .sources.todo import _is_completed_on_target, _is_due_on_target
-    from ..models.todo import TodoTask
+    from .models.todo import TodoTask
     
     lists = await client.get_all("/me/todo/lists")
     items = []
@@ -109,18 +109,18 @@ async def fetch_todo_items_async(client: AsyncGraphClient, target_date: date) ->
     # Fetch tasks from all lists concurrently
     async def fetch_list_tasks(todo_list: dict) -> tuple:
         list_id = todo_list["id"]
-        list_name = todo_list.get("displayName", "(unnamed list)")
         
         tasks = await client.get_all(
             f"/me/todo/lists/{list_id}/tasks",
             params={"$top": client.config.graph.max_page_size},
         )
-        return list_name, tasks.get("value", [])
+        return todo_list, tasks.get("value", [])
     
     list_tasks = [fetch_list_tasks(tl) for tl in lists.get("value", [])]
     list_results = await asyncio.gather(*list_tasks)
     
-    for list_name, task_items in list_results:
+    for todo_list, task_items in list_results:
+        list_name = todo_list.get("displayName", "(unnamed list)")
         # Validate tasks
         validated = []
         for task_data in task_items:
@@ -131,7 +131,7 @@ async def fetch_todo_items_async(client: AsyncGraphClient, target_date: date) ->
                 continue
         
         items.append({
-            "list": {"id": task_data.get("id", ""), "displayName": list_name},
+            "list": todo_list,
             "tasks": [t.model_dump(by_alias=True, mode="json") for t in validated]
         })
         
