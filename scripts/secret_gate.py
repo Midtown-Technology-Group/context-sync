@@ -48,7 +48,12 @@ def metadata_text(path, anchor):
         data = stream.read(8193)
     if len(data) > 8192:
         raise GateError(20, "BASE_ERROR: oversized Git metadata record.")
-    return data.decode("utf-8").strip()
+    try:
+        return data.decode("utf-8").strip()
+    except UnicodeError as error:
+        raise GateError(
+            20, "BASE_ERROR: unsupported Git metadata path encoding."
+        ) from error
 
 
 def linked_roots(common):
@@ -221,6 +226,15 @@ def remote_base(remote):
     )
 
 
+def base_commit(ref):
+    """Require a full destination ref or commit SHA instead of an ambiguous name."""
+    if not re.fullmatch(r"[0-9a-fA-F]{40}|[0-9a-fA-F]{64}", ref):
+        if not ref.startswith("refs/"):
+            raise GateError(20, "BASE_ERROR: --base requires a full ref or commit SHA.")
+        git("check-ref-format", ref)
+    return commit(ref)
+
+
 def ranges(args, stream, head):
     """Select complete PR or pre-push commit ranges."""
     grafts = Path(git("rev-parse", "--git-common-dir")) / "info/grafts"
@@ -233,7 +247,7 @@ def ranges(args, stream, head):
             20, "BASE_ERROR: shallow history; fetch --unshallow before scanning."
         )
     if not args.pre_push:
-        base = commit(args.base) if args.base else None
+        base = base_commit(args.base) if args.base else None
         if not base and not args.all_history:
             base = remote_base(args.remote)
         return [f"{base}..{head}" if base else head]
@@ -361,7 +375,7 @@ def verify_snapshot(args, head, selected):
         )
     if not args.pre_push and not args.all_history and ".." in selected[0]:
         scanned_base = selected[0].split("..", 1)[0]
-        current_base = commit(args.base) if args.base else remote_base(args.remote)
+        current_base = base_commit(args.base) if args.base else remote_base(args.remote)
         if current_base != scanned_base:
             raise GateError(
                 4, "SCAN_ERROR: base changed; rerun for the new destination."
@@ -374,7 +388,7 @@ def main(argv=None, stream=None):
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         "--base",
-        help="explicit PR base or destination tip, resolved to an immutable commit",
+        help="fully qualified destination ref or full commit SHA",
     )
     mode.add_argument(
         "--all-history",
