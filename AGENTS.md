@@ -13,3 +13,12 @@ Use mock Graph responses and a disposable graph for tests. Sync writes Markdown 
 `SECURITY.md` says no write permissions are required, but `timeblock/calendar_writer.py` creates, moves, marks, and deletes Exchange events. Treat timeblocking as a live write operation. Verify actual requested scopes and command behavior in source; the security page is not proof that every command is read-only. Calendar mutations need a reviewed plan, exact calendar/time window, and independent readback; never run them merely to validate guidance.
 
 Use least-privilege auth and preserve encrypted-cache behavior where configured; never share token caches across users or bypass TLS validation. Read `packaging/PACKAGING-README.md`, Azure Function setup, and deployment scripts only for their respective lanes. MSI install/uninstall changes machine state and requires the authorized environment.
+
+## Secret gate before publication
+
+Before every push and PR creation/update, commit the complete candidate and run
+`python3 scripts/secret_gate.py` (native Windows: `python`). Require exit 0;
+missing tooling/authentication, scan errors and skipped scans block publication.
+Then run the existing repository gates. Repeat after changing outgoing commits.
+See [secret scanning](SECRET-SCANNING.md) for base selection, new branches,
+pre-push input and prerequisites. Preserve GitGuardian App, CI and Gitleaks checks.
