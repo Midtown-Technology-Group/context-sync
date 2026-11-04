@@ -989,6 +989,28 @@ class SecretGateTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(self.calls.exists())
 
+    def test_empty_git_askpass_preserves_disabled_helper(self):
+        """Keep Git's explicit helper-disable value and reject empty SSH askpass."""
+        self.env["GIT_ASKPASS"] = ""
+        fake = self.bin / "fake.py"
+        checks = (
+            "assert 'GIT_ASKPASS' in os.environ\n"
+            "assert os.environ['GIT_ASKPASS'] == ''\n"
+        )
+        fake.write_text(
+            fake.read_text().replace(
+                "args = sys.argv[1:]", checks + "args = sys.argv[1:]"
+            )
+        )
+        result = self.run_gate("--base", self.base)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(self.calls.exists())
+        self.calls.unlink()
+        self.env["SSH_ASKPASS"] = ""
+        result = self.run_gate("--base", self.base)
+        self.assertEqual(result.returncode, 20, result.stderr)
+        self.assertFalse(self.calls.exists())
+
     def test_rewritten_registry_pointer_cannot_admit_a_linked_scanner(self):
         """The candidate's own Git association excludes an omitted sibling."""
         self.commit("synthetic-secret-marker")
