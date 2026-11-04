@@ -19,6 +19,7 @@ import tempfile
 from pathlib import Path
 
 MINIMUM_PYTHON = (3, 11)
+GITDIR_PREFIX = "gitdir:"
 
 
 class GateError(Exception):
@@ -124,9 +125,9 @@ def checkout_roots():
     gitdir = marker
     if marker.is_file():
         text = metadata_text(marker, root)
-        if not text.startswith("gitdir:") or "\n" in text:
+        if not text.startswith(GITDIR_PREFIX) or "\n" in text:
             raise GateError(20, "BASE_ERROR: unsupported Git worktree metadata.")
-        gitdir = (root / text[len("gitdir:") :].strip()).resolve()
+        gitdir = (root / text[len(GITDIR_PREFIX) :].strip()).resolve()
     gitdir = gitdir.resolve()
     owner = next((p for p in (gitdir, *gitdir.parents) if p.name == ".git"), None)
     if owner is None:
@@ -148,7 +149,18 @@ def checkout_roots():
 
 def checkout_owned(path, roots):
     """Reject code owned by this repository or its linked worktrees."""
-    return any(path.is_relative_to(root) for root in roots)
+    if any(path.is_relative_to(root) for root in roots):
+        return True
+    for directory in (path, *path.parents):
+        marker = directory / ".git"
+        if marker.is_file():
+            text = metadata_text(marker, directory)
+            if not text.startswith(GITDIR_PREFIX) or "\n" in text:
+                raise GateError(20, "BASE_ERROR: unsupported tool-checkout metadata.")
+            gitdir = (directory / text[len(GITDIR_PREFIX) :].strip()).resolve()
+            if any(gitdir.is_relative_to(root) for root in roots):
+                return True
+    return False
 
 
 def command_environment():
