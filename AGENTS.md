@@ -17,7 +17,10 @@ Use least-privilege auth and preserve encrypted-cache behavior where configured;
 ## Secret gate before publication
 
 Before publishing the current PR branch, commit the complete candidate and run
-`python3 scripts/secret_gate.py` (native Windows: `python`). Require exit 0;
+`python3 -I scripts/secret_gate.py --base refs/remotes/origin/main`.
+On native Windows PowerShell, run
+`& "$env:MTG_SECRET_GATE_PYTHON" -I scripts/secret_gate.py --base refs/remotes/origin/main`.
+Require the gate's exit code 0 (`$LASTEXITCODE` in PowerShell);
 missing tooling/authentication, scan errors and skipped scans block publication.
 Then run the existing repository gates. Repeat after changing outgoing commits.
 Push exactly the scanned HEAD. This PR scan covers the current branch against its
@@ -25,3 +28,11 @@ fetched intended base; other refs, multi-ref pushes and rewritten history requir
 `--pre-push` with Git's complete ref-update stream. Stop if any pushed ref is
 uncovered. See [secret scanning](SECRET-SCANNING.md) for base selection, new branches,
 pre-push input and prerequisites. Preserve GitGuardian App, CI and Gitleaks checks.
+
+For a non-default PR target, fetch its destination and pass that exact ref to
+`--base`; the remote default is not a substitute for a release/maintenance base.
+
+The secret gate requires Python 3.11+ and approved ggshield >=1.56.1,<2.
+
+Explicit bases require fully qualified refs such as `refs/remotes/origin/main`
+or full commit SHAs; ambiguous short names block with exit 20.
